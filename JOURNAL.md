@@ -20,3 +20,22 @@ My last two semesters of school have involved creating web apps, so I am familia
 **Setup confirmation:** [ X ] App runs locally at localhost:5173
 
 **Cohort ledger:** [ X ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [Commit documenting issue reproduction/gap.](https://github.com/ascherj/pathreview/commit/1b1466c4c24c1f6d396af493282476b910d422bf)
+
+**Reproduction summary:**
+
+This issue is for a feature and not a bug fix, so I focused on illustrating the existing gap in rate limit headers. I confirmed the gap by sending `curl -iv` requests to the running dev server. Responses currently include `X-Request-ID` (from `RequestIDMiddleware`) but `no X-RateLimit-Limit` or `X-RateLimit-Remaining` headers, and repeated requests past `rate_limit_per_minute` (60) never return a `429` error code. I also wrote a failing integration test (`tests/integration/test_rate_limit_headers.py`) asserting both headers are in the response, which fails today since the middleware does not yet exist. The test hits the root endpoint `/` in `main.py` and includes the following headers in its response:
+
+```
+Headers({'content-length': '57', 'content-type': 'application/json', 'x-request-id': '94e605f5-62f0-4db3-a53b-36c0ef6829f4'})
+```
+
+**PLAN.md link:** [Link here.](PLAN.md)
+
+**Walkthrough video (recommended):** None
+
+**Blockers or open questions:**
+- Open question: Should returning the 429 error be within the scope of this issue? As written, it implies a 429 error is returned, but that is not currently implemented and could be out of scope.
