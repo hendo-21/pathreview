@@ -21,6 +21,8 @@ My last two semesters of school have involved creating web apps, so I am familia
 
 **Cohort ledger:** [ X ] Issue added to cohort ledger
 
+---
+
 ## Week 8 — Reproduction & solution planning
 
 **Reproduction commit link:** [Commit documenting issue reproduction/gap.](https://github.com/hendo-21/pathreview/commit/2edcbff35be6738cc84a1db2dccc0c17a6eaee26)
@@ -39,3 +41,44 @@ Headers({'content-length': '57', 'content-type': 'application/json', 'x-request-
 
 **Blockers or open questions:**
 - Open question: Should returning the 429 error be within the scope of this issue? As written, it implies a 429 error is returned, but that is not currently implemented and could be out of scope.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+So far this week I have completed my codebase understanding subtasks:
+1. Read `core/security.py` and confirm `decode_access_token()`'s exact signature: what it returns on success, and what it raises on an invalid/expired token. Confirm what `create_access_token` sets to the user's ID.
+2. Read `api/middleware/request_id.py` as the template for the new middleware and confirm the `BaseHTTPMiddleware` and `dispatch(request, call_next)` shape. Read `api/main.py` to see how middleware is added to the api.
+3. Read `safety/rate_limiter.py` in full and confirm `check_rate_limit(identifier, limit, window_seconds)`'s exact return shape and whether `limit` needs to be passed in or is read internally.
+
+**Next steps:**
+The rest of the week I need to focus on implementation and verification. I haven't written any code yet. Specifically:
+1. Create `api/middleware/rate_limit.py` with a `RateLimitMiddleware(BaseHTTPMiddleware)`
+2. Add `RateLimitMiddleware` to `main.py`.
+3. Update `tests/integration/test_rate_limit_headers.py` with additional tests.
+4. Verify unit tests pass and there are no linting errors.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** (https://github.com/ascherj/pathreview/pull/654)
+
+**Branch:** `feat/86-ratelimit-headers`
+
+**What you built:**
+Adds middleware attaching `X-RateLimit-Limit` and `X-RateLimit-Remaining` headers to every response. Enforces rate limit by returning a 429 error if client identifier exceeds rate limit. Provides api clients with information on the established rate limit and their usage remaining for the rate limit window.
+
+**Tests added or updated:**
+- `tests/unit/test_rate_limit_middleware.py` (new): identifier resolution (Bearer token with/without `sub`, malformed token, missing client) and `dispatch` behavior (allowed vs. 429-denied, header attachment, correct args passed to `check_rate_limit`), with a mocked `RateLimiter`.
+- `tests/integration/test_rate_limit_headers.py` (new): coverage for remaining-count decrementing, the limit header value, 429 enforcement, invalid/sub-less Bearer tokens, and independent buckets across the seeded `user1`/`user2`/`user3` accounts.
+
+**Self-review confirmation:** [ X ] make check passes  [ X ] make test-unit passes (no new failures on either)
+
+**Draft PR feedback received from:** none
