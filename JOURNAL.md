@@ -82,3 +82,41 @@ Adds middleware attaching `X-RateLimit-Limit` and `X-RateLimit-Remaining` header
 **Self-review confirmation:** [ X ] make check passes  [ X ] make test-unit passes (no new failures on either)
 
 **Draft PR feedback received from:** none
+
+--- 
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [ X ] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+It was harder than I expected to construct a mental model of the app's request/response structure with the addition of Redis. This was my first time seeing Redis in an application, and it was hard for me to understand the utility as compared to say a database hosted on a server or just in-memory management. This presented a challenge given my feature (attaching rate limit headers to all requests) relies on Redis to store rate limit information on api clients via an identifier. This lack of understanding meant that in my implementation, I create a new Redis connection every time the new `RateLimitMiddleware` is initialized, rather than using a Redis client shared by all modules at the API level. I now see the value in Redis as a high performance layer for things like rate limit and health checks for checks on every HTTP request given Redis' ultra fast look up and response speed.
+
+**What did you learn about working in a large codebase?**
+
+It was actually very similar to other professional experiences I've had outside of software development working on existing projects. Specifically, in past experiences, I have always sought to understand the "why" behind certain decisions so that I am operating within the context of the project rather than a: trying to solve problems that have already been thoroughly thought through, and b: introducing new design patterns that just make the project more confusing. So my approach here was to be much more conservative than I might have otherwise been if developing my own personal project. I made great efforts to understand the existing design patterns and decided to model my feature after them. I also spent more time proof-reading the code and my design decisions knowing that someone would review them with a more experienced and critical eye (even so, I still see areas for improvement as described in the previous section).
+
+**How did AI tools help — and where did they fall short?**
+
+They helped me understand the existing architecture well, specifically the existing `safety/rate_limiter.py` and `request_id` middleware. Prompting Claude to draw an ASCII diagram of the HTTP request lifecycle was particularly helpful for me, as I had not seen this middleware design pattern before tackling this issue. Once I had my plan fleshed out, the actual code implementation via Claude was very straightforward and I had minimal edits. It didn't do a great job at explaining Redis to me however. It is possible that is because I was asking it Redis questions in the VSCode Claude extension rather than Claude chat, but it was constantly relating its answers to code snippets in the chat, which I think made it less effective at answering my general questions on Redis like "what is its utility?" and "how does it differ from a database?". I ultimately went to YouTube and watched a couple quick videos on Redis and that helped immensely. I've learned that when it comes to system design, visual aids are required for me. 
+
+
+**What would you do differently if you started over?**
+
+I would spend a little more time seeking feedback from my peers and asking them design uestions. The AI tools were great at helping me to understand specific sections of the codebase, and were generally pretty good at helping me form a mental model, but after hearing from peers in stand up it became clear to me that they were incredibly experienced and knowledgeable. For example, I bet if I had asked my class to ELI5 Redis, I would have reached for the pooled Redis client initially. Generally, it was also just very inspiring to hear from my classmates and how they approach solving problems, so if I were to do this again (likely will with 301), I would seek out those experiences more.
+
+**What are you most proud of from this module?**
+
+I have had a couple of PRs merged for a smaller OSS project over the last couple of months, but my efforts there have mostly been focused on bug fixes, adding regression tests for those bugs, and doing CI/CD work. All valuable experiences that I am proud of, but so far I have not contributed new functionality as I did with this feature. Implementing this new feature meant making certain system design decisions I did not have to make for those other contributions, which forced me to dig deeper into understanding the design patterns so that I could justify those decisions during code review. That work was hard, and I'm proud of how I pushed through with adversarial thinking to understand the existing system. This was my first experience seeing api middleware, and I am proud that I can now say I not only understand what it does, but have also implemented a key layer. The issue I worked on, adding rate limit headers to all api client responses, is a critical safety and usability feature that will be used by every app api client and to leave that legacy also just feels great (even if it is only a mock project).
